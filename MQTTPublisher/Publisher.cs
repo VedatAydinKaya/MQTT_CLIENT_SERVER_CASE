@@ -25,7 +25,7 @@ namespace MQTTPublisher
                 Console.WriteLine("Connected  to the broker succesfully");
 
                 var topicFilter = new TopicFilterBuilder()
-                                    .WithTopic("sub")
+                                    .WithTopic("NODE_SERVER")
                                     .Build();
 
                 await client.SubscribeAsync(topicFilter);
@@ -38,32 +38,30 @@ namespace MQTTPublisher
 
             client.UseApplicationMessageReceivedHandler(e =>     // we need to specify an event handler in case we receive a message 
             {
-                // Console.WriteLine($"Received Message as Your Message -{Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");  // payload will be byte array we need to convert it back to string
-
+                 // payload will be byte array we need to convert it back to string
                 Console.WriteLine($"Received: {DateTime.Now:T} - {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
             });
 
             await client.ConnectAsync(options);         // now we will try to establish connection
 
-
-            // Console.ReadLine();
-
             do
             {
                 string messagePayload = Console.ReadLine();
                 if (string.IsNullOrEmpty(messagePayload))// boş giriş yapıldığında pub kapanır
+                {
                     break;
+                    await client.DisconnectAsync();
+                }
                 await PublishMessageAsync(client, messagePayload);
             } while (true);
 
             //await client.DisconnectAsync();    // as soon as  the message has been published  we will disconnected the client
 
         }
-
         private static async Task PublishMessageAsync(IMqttClient client, string messagePayload)
         {
             var message = new MqttApplicationMessageBuilder()  // for message will have build
-                          .WithTopic("pub")
+                          .WithTopic("NODE_CLIENT")
                           .WithPayload(messagePayload)
                           .WithAtLeastOnceQoS()           // quality of services which are defined in as part of the mqtt protocol 
                         .Build();
