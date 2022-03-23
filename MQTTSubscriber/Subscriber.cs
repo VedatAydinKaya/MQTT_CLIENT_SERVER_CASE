@@ -49,13 +49,14 @@ namespace MQTTSubscriber
                 string messagePayload = Console.ReadLine();
                 if (string.IsNullOrEmpty(messagePayload))   //  when empty entries from console pub topic closes
                 {
-                    break;
                     await client.DisconnectAsync();
+                    break;
+                  
                 }
                 await PublishMessageAsync(client, messagePayload);
             } while (true);
 
-           // await client.DisconnectAsync();
+           
         }
         private static async Task PublishMessageAsync(IMqttClient client, string messagePayload)
         {

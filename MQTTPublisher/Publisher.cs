@@ -49,13 +49,13 @@ namespace MQTTPublisher
                 string messagePayload = Console.ReadLine();
                 if (string.IsNullOrEmpty(messagePayload))// boş giriş yapıldığında pub kapanır
                 {
+                    await client.DisconnectAsync(); // as soon as  the message has been published  we will disconnected the client
                     break;
-                    await client.DisconnectAsync();
                 }
                 await PublishMessageAsync(client, messagePayload);
             } while (true);
 
-            //await client.DisconnectAsync();    // as soon as  the message has been published  we will disconnected the client
+               
 
         }
         private static async Task PublishMessageAsync(IMqttClient client, string messagePayload)
