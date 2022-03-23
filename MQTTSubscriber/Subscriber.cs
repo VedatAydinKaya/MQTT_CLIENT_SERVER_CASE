@@ -9,6 +9,7 @@ namespace MQTTSubscriber
 {
     internal class Subscriber
     {
+        private
         static async Task Main(string[] args)
         {
             var mqttFactory = new MqttFactory();
@@ -19,16 +20,16 @@ namespace MQTTSubscriber
                             .WithCleanSession()
                             .Build();
 
-            client.UseConnectedHandler( async e =>   
-            {
-                Console.WriteLine("Connected  to the broker succesfully");
+            client.UseConnectedHandler(async e =>
+           {
+               Console.WriteLine("Connected  to the broker succesfully");
 
-                var topicFilter=new TopicFilterBuilder()
-                                    .WithTopic("VedatAydinKaya")
-                                    .Build();
+               var topicFilter = new TopicFilterBuilder()
+                                   .WithTopic("pub")
+                                   .Build();
 
-                await client.SubscribeAsync(topicFilter);
-            });
+               await client.SubscribeAsync(topicFilter);
+           });
 
             client.UseDisconnectedHandler(e =>
             {
@@ -37,45 +38,45 @@ namespace MQTTSubscriber
 
             client.UseApplicationMessageReceivedHandler(e =>     // we need to specify an event handler in case we receive a message 
             {
-               // Console.WriteLine($"Received Message as Your Message -{Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");  // payload will be byte array we need to convert it back to string
+                // Console.WriteLine($"Received Message as Your Message -{Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");  // payload will be byte array we need to convert it back to string
 
-                Console.WriteLine($"{Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
-            });              
+                Console.WriteLine($"Received: {DateTime.Now:T} - {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
+            });
 
 
             await client.ConnectAsync(options);
 
-            Console.ReadLine();
+            //Console.ReadLine();
 
-
-         //  await PublishMessageAsync(client);
+            do
+            {
+                string messagePayload = Console.ReadLine();
+                if (string.IsNullOrEmpty(messagePayload))// boş giriş yapıldığında pub kapanır
+                    break;
+                await PublishMessageAsync(client, messagePayload);
+            } while (true);
 
             await client.DisconnectAsync();
 
         }
 
-        //private static async Task PublishMessageAsync(IMqttClient client)
-        //{
-        //    //string messagePayload = "Hello";
-        //    string messagePayload = Console.ReadLine();
+        private static async Task PublishMessageAsync(IMqttClient client, string messagePayload)
+        {
+            var message = new MqttApplicationMessageBuilder()  // for message will have build
+                          .WithTopic("sub")
+                          .WithPayload(messagePayload)
+                          .WithAtLeastOnceQoS()           // quality of services which are defined in as part of the mqtt protocol 
+                        .Build();
 
+            if (client.IsConnected)
+            {
+                await client.PublishAsync(message);
 
-        //    var message = new MqttApplicationMessageBuilder()  // for message will have build
-        //                  .WithTopic("VedatAydinKaya")
-        //                  .WithPayload(messagePayload)
-        //                  .WithAtLeastOnceQoS()           // quality of services which are defined in as part of the mqtt protocol 
-        //                .Build();
+                Console.WriteLine($"Sent: {DateTime.Now:T} - {messagePayload}");
 
-        //    if (client.IsConnected)
-        //    {
-        //        await client.PublishAsync(message);
+            }
 
-        //        // Console.WriteLine($"Published message -{messagePayload}");
-        //        Console.WriteLine($"{messagePayload}");
-
-        //    }
-
-        //}
+        }
 
 
 
